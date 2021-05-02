@@ -41,4 +41,37 @@ class ListColumnTest {
             assertEquals("Bar", values[1])
         }
     }
+
+    @Test
+    fun testLookupWithContains() {
+        transaction {
+            ArrayTest.insert {
+                it[values] = listOf("Baz", "Bar")
+            }
+            val recordId = ArrayTest.insertAndGetId {
+                it[values] = listOf("Foo", "Bar")
+            }
+            val query = ArrayTest.select { ArrayTest.values contains listOf("Bar", "Foo") }
+            assertEquals(1, query.count())
+            val found = query.first()
+            assertEquals(recordId, found[ArrayTest.id])
+        }
+    }
+
+    @Test
+    fun testLookupWithAny() {
+        transaction {
+            ArrayTest.insert {
+                it[values] = listOf("Baz", "Bar")
+            }
+            ArrayTest.insert {
+                it[values] = listOf("Foo", "Bar")
+            }
+            ArrayTest.insert {
+                it[values] = listOf("Foo")
+            }
+            val query = ArrayTest.select { ArrayTest.values any "Bar" }
+            assertEquals(2, query.count())
+        }
+    }
 }

@@ -38,7 +38,26 @@ class EnumSetTest {
     }
 
     @Test
-    fun testMappingViaContains() {
+    fun testLookupViaContains() {
+        transaction {
+            FooTest.insert {
+                it[values] = setOf(Foo.bar, Foo.baz)
+            }
+            FooTest.insert {
+                it[values] = setOf(Foo.bar)
+            }
+            FooTest.insert {
+                it[values] = setOf(Foo.baz)
+            }
+            val queryForBar = FooTest.select { FooTest.values contains setOf(Foo.bar) }.count()
+            assertEquals(2, queryForBar)
+            val queryForBoth = FooTest.select { FooTest.values contains setOf(Foo.bar, Foo.baz) }.count()
+            assertEquals(1, queryForBoth)
+        }
+    }
+
+    @Test
+    fun testLookupViaAny() {
         transaction {
             FooTest.insertAndGetId {
                 it[values] = setOf(Foo.bar, Foo.baz)
@@ -49,10 +68,8 @@ class EnumSetTest {
             FooTest.insert {
                 it[values] = setOf(Foo.baz)
             }
-            val queryForBar = FooTest.select { FooTest.values contains setOf(Foo.bar) }.count()
+            val queryForBar = FooTest.select { FooTest.values any Foo.bar }.count()
             assertEquals(2, queryForBar)
-            val queryForBoth = FooTest.select { FooTest.values contains setOf(Foo.bar, Foo.baz) }.count()
-            assertEquals(1, queryForBoth)
         }
     }
 }

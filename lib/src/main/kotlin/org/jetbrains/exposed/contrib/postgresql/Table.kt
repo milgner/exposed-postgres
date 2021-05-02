@@ -31,34 +31,27 @@ fun <T : Enum<T>> Table.enumSet(
 ): Column<Set<T>> =
     registerColumn(columnName, EnumSetColumnType(enumClass, typeName))
 
-//
-//class AnyOp(val expr1: Expression<*>, val expr2: Expression<*>) : Op<Boolean>() {
-//    private fun appendExpression(queryBuilder: QueryBuilder, expression: Expression<*>) {
-//        when (expression) {
-//            is OrOp -> queryBuilder.append("(").append(expression).append(")")
-//            is QueryParameter -> {
-//                val column = expression.value as Column<*>
-//                queryBuilder.append("${column.table.tableName}.${column.name}")
-//            }
-//            else -> queryBuilder.append(expression)
-//        }
-//    }
-//
-//    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
-//        appendExpression(queryBuilder, expr2)
-//        queryBuilder.append(" = ANY (")
-//        appendExpression(queryBuilder, expr1)
-//        queryBuilder.append(")")
-//    }
-//}
-//
-//infix fun <T, S> ExpressionWithColumnType<T>.any(t: S): Op<Boolean> {
-//    if (t == null) {
-//        return IsNullOp(this)
-//    }
-//    return AnyOp(this, QueryParameter(t, columnType))
-//}
+
+class AnyOp(val expr1: Expression<*>, val expr2: Expression<*>) : Op<Boolean>() {
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+        queryBuilder.append(expr2)
+        queryBuilder.append(" = ANY (")
+        queryBuilder.append(expr1)
+        queryBuilder.append(")")
+    }
+}
+
+// TODO: type declaration doesn't work as desired yet
+// For example it is still possible to call `any` on non-collection columns
+// and mismatching element types
+infix fun <S, T : Collection<S>> ExpressionWithColumnType<T>.any(t: S): Op<Boolean> {
+    if (t == null) {
+        return IsNullOp(this)
+    }
+    return AnyOp(this, QueryParameter(t, columnType))
+}
 
 class ContainsOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "@>")
-infix fun <T, S> ExpressionWithColumnType<T>.contains(array: Iterable<S>): Op<Boolean> =
+
+infix fun <S, T : Collection<S>> ExpressionWithColumnType<T>.contains(array: Iterable<S>): Op<Boolean> =
     ContainsOp(this, QueryParameter(array, columnType))

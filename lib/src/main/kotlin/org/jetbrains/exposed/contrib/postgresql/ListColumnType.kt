@@ -2,7 +2,9 @@ package org.jetbrains.exposed.contrib.postgresql
 
 import org.jetbrains.exposed.sql.ColumnType
 
-class ListColumnType<T>(private val elementType: ColumnType) : ColumnType() {
+abstract class CollectionColumnType<T, S : Collection<T>> : ColumnType()
+
+class ListColumnType<T>(private val elementType: ColumnType) : CollectionColumnType<T, List<T>>() {
     override fun sqlType(): String = "${elementType.sqlType()} ARRAY"
 
     override fun valueFromDB(value: Any): List<T> {
