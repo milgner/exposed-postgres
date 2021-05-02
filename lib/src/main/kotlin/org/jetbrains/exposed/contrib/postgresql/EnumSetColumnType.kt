@@ -35,18 +35,4 @@ class EnumSetColumnType<T : Enum<T>>(
             }
         }
     }
-//
-//    override fun notNullValueToDB(value: Any): Any {
-//        return if (value is Set<*>) {
-//            if (value.isEmpty())
-//                return "'{}'"
-//
-//            val jdbcConnection = currentSqlConnection()
-//            jdbcConnection.createArrayOf(elementTypeName, value.toTypedArray())
-//                ?: error("Can't create non null array for $value")
-//        } else {
-//            super.notNullValueToDB(value)
-//        }
-//    }
-
 }
